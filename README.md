@@ -9,7 +9,7 @@
 
 ## What it does
 
-You've just had a long conversation with an AI. Instead of scrolling back through hundreds of messages, hit **Summarize** — Puller scrapes the chat, sends it to Gemini, and gives you a clean structured breakdown:
+You've just had a long conversation with an AI. Instead of scrolling back through hundreds of messages, hit **Summarize** — Puller scrapes the chat and gives you a clean structured breakdown:
 
 - 🗂 Conversation overview
 - ❗ Problems & questions raised
@@ -33,48 +33,31 @@ Copy the summary with one click and paste it anywhere — into Notion, Obsidian,
 
 ---
 
-## Setup (5 minutes)
+## Install (2 minutes, no account needed)
 
-Puller uses your own Gemini API key — your data never touches our servers.  
-Get a free key at [aistudio.google.com](https://aistudio.google.com/app/apikey) — no credit card required.
+### Step 1 — Download the extension
 
-### 1. Clone the extension
+Click the green **Code** button on this page → **Download ZIP**
 
-```bash
-git clone https://github.com/YOUR_USERNAME/puller-extension.git
-cd puller-extension
-```
+![Download ZIP](./download.png)
 
-### 2. Add your API key
+Unzip the folder anywhere on your computer.
 
-You have two options:
+### Step 2 — Load it in Chrome
 
-**Option A — Use the hosted backend (easiest):**
-- Clone and deploy [puller-backend](https://github.com/YOUR_USERNAME/puller-backend) to Vercel (free)
-- Open `popup.js` and set:
-  ```js
-  const BACKEND_URL = "https://your-project.vercel.app/api/summarize";
-  ```
-
-**Option B — Run the backend locally:**
-```bash
-# In the puller-backend folder
-cp .env.example .env
-# Add your Gemini key to .env:
-# GEMINI_API_KEY=your_key_here
-npm install
-npm run dev
-```
-The backend runs at `http://localhost:3000` — the extension is already pointed at this by default.
-
-### 3. Load the extension in Chrome
-
-1. Open `chrome://extensions`
-2. Enable **Developer mode** (top right toggle)
+1. Open Chrome and go to `chrome://extensions`
+2. Enable **Developer mode** using the toggle in the top right
 3. Click **Load unpacked**
-4. Select the `puller-extension` folder
+4. Select the unzipped `puller-extension` folder
 
-That's it. Pin the extension and open any AI chat.
+### Step 3 — Pin it and use it
+
+1. Click the puzzle piece 🧩 icon in Chrome toolbar
+2. Pin **Puller**
+3. Open any AI chat (ChatGPT, Claude, Gemini)
+4. Click **Summarize Current Chat**
+
+That's it. No API key. No signup. No configuration. Everything is handled by the backend.
 
 ---
 
@@ -85,15 +68,15 @@ You click Summarize
        ↓
 Extension scrapes the chat from the page (runs locally in your browser)
        ↓
-Raw transcript sent to puller-backend (your own server)
+Raw transcript sent to the hosted backend
        ↓
-Backend calls Gemini API (using your key)
+Backend calls Gemini API
        ↓
 Structured summary returned and displayed
 ```
 
-Your chat data flows: **browser → your backend → Gemini → back to you.**  
-No third-party servers. No logging. No accounts.
+Your chat data flows: **browser → backend → Gemini → back to you.**  
+No accounts. No logging. No tracking.
 
 ---
 
@@ -110,12 +93,11 @@ puller-extension/
 
 ---
 
-## Backend
+## Self Hosting
 
-The backend is a separate repo:  
-👉 [puller-backend](https://github.com/YOUR_USERNAME/puller-backend)
+Want to run your own backend instead of using the hosted one?
 
-It's a minimal Next.js API route that proxies requests to Gemini. Deploy it to Vercel in one click — free tier is more than enough.
+👉 [puller-backend](https://github.com/codedocks2005/puller-backend) — deploy to Vercel for free in one click, bring your own Gemini API key.
 
 ---
 
