@@ -1,76 +1,130 @@
-# AI Chat Summarizer — Chrome Extension
+# ✨ Puller — AI Chat Summarizer Extension
 
-A Manifest V3 Chrome Extension that summarizes ChatGPT and Claude conversations with a single click.
+> Instantly summarize any AI chat conversation with one click.  
+> Works on ChatGPT, Claude, Gemini, and most AI chat interfaces.
+
+
+
+---
+
+## What it does
+
+You've just had a long conversation with an AI. Instead of scrolling back through hundreds of messages, hit **Summarize** — Puller scrapes the chat, sends it to Gemini, and gives you a clean structured breakdown:
+
+- 🗂 Conversation overview
+- ❗ Problems & questions raised
+- 💡 Solutions & answers provided
+- 🔧 Technical details & code mentioned
+- ✅ Action items & next steps
+- 📌 Key takeaways
+
+Copy the summary with one click and paste it anywhere — into Notion, Obsidian, an email, or another AI.
+
+---
+
+## Supported Sites
+
+| Site | Status |
+|---|---|
+| chatgpt.com | ✅ Full support |
+| claude.ai | ✅ Full support |
+| gemini.google.com | ✅ Full support |
+| Any AI chat site | ⚡ Generic fallback |
+
+---
+
+## Setup (5 minutes)
+
+Puller uses your own Gemini API key — your data never touches our servers.  
+Get a free key at [aistudio.google.com](https://aistudio.google.com/app/apikey) — no credit card required.
+
+### 1. Clone the extension
+
+```bash
+git clone https://github.com/YOUR_USERNAME/puller-extension.git
+cd puller-extension
+```
+
+### 2. Add your API key
+
+You have two options:
+
+**Option A — Use the hosted backend (easiest):**
+- Clone and deploy [puller-backend](https://github.com/YOUR_USERNAME/puller-backend) to Vercel (free)
+- Open `popup.js` and set:
+  ```js
+  const BACKEND_URL = "https://your-project.vercel.app/api/summarize";
+  ```
+
+**Option B — Run the backend locally:**
+```bash
+# In the puller-backend folder
+cp .env.example .env
+# Add your Gemini key to .env:
+# GEMINI_API_KEY=your_key_here
+npm install
+npm run dev
+```
+The backend runs at `http://localhost:3000` — the extension is already pointed at this by default.
+
+### 3. Load the extension in Chrome
+
+1. Open `chrome://extensions`
+2. Enable **Developer mode** (top right toggle)
+3. Click **Load unpacked**
+4. Select the `puller-extension` folder
+
+That's it. Pin the extension and open any AI chat.
+
+---
+
+## How it works
+
+```
+You click Summarize
+       ↓
+Extension scrapes the chat from the page (runs locally in your browser)
+       ↓
+Raw transcript sent to puller-backend (your own server)
+       ↓
+Backend calls Gemini API (using your key)
+       ↓
+Structured summary returned and displayed
+```
+
+Your chat data flows: **browser → your backend → Gemini → back to you.**  
+No third-party servers. No logging. No accounts.
+
+---
 
 ## Project Structure
 
 ```
-puller/
-├── manifest.json   ← Extension config (MV3)
-├── popup.html      ← Popup UI
-├── popup.js        ← Popup logic & message passing
-├── content.js      ← Content script (chat scraper)
-└── icons/
-    ├── icon16.png
-    ├── icon48.png
-    └── icon128.png
+puller-extension/
+├── manifest.json       # Extension config
+├── popup.html          # Extension UI
+├── popup.js            # Core logic: scraping + API calls
+├── popup.css           # Styles
+└── icons/              # Extension icons
 ```
 
-## Loading into Chrome (Developer Mode)
+---
 
-1. Open Chrome and navigate to `chrome://extensions`
-2. Toggle **Developer mode** ON (top-right corner)
-3. Click **Load unpacked**
-4. Select this entire `puller/` folder
-5. The extension icon will appear in the toolbar
+## Backend
 
-## Testing the Flow
+The backend is a separate repo:  
+👉 [puller-backend](https://github.com/YOUR_USERNAME/puller-backend)
 
-1. Open [chatgpt.com](https://chatgpt.com) or [claude.ai](https://claude.ai) and start/open a conversation
-2. Click the extension icon
-3. The status dot will turn **green** (supported page detected)
-4. Click **Summarize Current Chat**
-5. You'll see: `Scraping…` → `Summarizing…` → preview of scraped content
+It's a minimal Next.js API route that proxies requests to Gemini. Deploy it to Vercel in one click — free tier is more than enough.
 
-> The LLM summarization call is **not yet wired** — the output shows raw scraped text.
-> See `popup.js → simulateLLMCall()` to connect your API.
+---
 
-## Next Steps
+## Contributing
 
-### Phase 2 — Smart DOM Parsing
-Replace the generic `document.body.innerText` fallback in `content.js` with
-site-specific selectors inside the `SITE_SELECTORS` object:
+PRs are welcome. If Puller doesn't work on a specific AI chat site, open an issue with the site URL and I'll add a scraper for it.
 
-```js
-// content.js
-const SITE_SELECTORS = {
-  "chatgpt.com": ['[data-message-author-role]'],
-  "claude.ai":   ['[data-testid="human-turn"]', '[data-testid="ai-turn"]'],
-};
-```
+---
 
-### Phase 3 — LLM Integration
-Replace `simulateLLMCall()` in `popup.js` with a real API call:
+## License
 
-```js
-async function summarizeWithLLM(text) {
-  const res = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${YOUR_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: "Summarize the following chat conversation concisely." },
-        { role: "user",   content: text },
-      ],
-    }),
-  });
-  const data = await res.json();
-  return data.choices[0].message.content;
-}
-```
-
-> ⚠️ For production, **never hard-code API keys** in the extension. Use a backend proxy or Chrome's `storage.sync` with a user-provided key.
+MIT — do whatever you want with it.
