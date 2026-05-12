@@ -3,7 +3,7 @@
 > Instantly summarize any AI chat conversation with one click.  
 > Works on ChatGPT, Claude, Gemini, and most AI chat interfaces.
 
-![Puller in action](./screenshot.png)
+
 
 ---
 
