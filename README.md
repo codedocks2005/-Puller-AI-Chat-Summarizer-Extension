@@ -39,7 +39,7 @@ Copy the summary with one click and paste it anywhere — into Notion, Obsidian,
 
 Click the green **Code** button on this page → **Download ZIP**
 
-![Download ZIP](./download.png)
+![Download ZIP]
 
 Unzip the folder anywhere on your computer.
 
