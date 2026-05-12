@@ -9,7 +9,7 @@
 
 // ── Backend URL ───────────────────────────────────────────────────────────────
 // Local dev:
-const BACKEND_URL = "https://puller-backend.vercel.app";
+const BACKEND_URL = "https://puller-backend.vercel.app/api/summarize";
 // Production: paste your Vercel URL here when ready, e.g.:
 // const BACKEND_URL = "https://your-project.vercel.app/api/summarize";
 
