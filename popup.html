@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Puller — AI Chat Summarizer</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #000000;
+      --card:        #111111;
+      --border:      rgba(255,255,255,0.11);
+      --text:        #ffffff;
+      --muted:       #777777;
+      --radius:      12px;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      width: 380px;
+      overflow: hidden;
+    }
+
+    /* ─── Header ─────────────────────────────────────────── */
+    .header {
+      background: linear-gradient(135deg, #161616 0%, #000 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 18px 13px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header::after {
+      content: '';
+      position: absolute;
+      top: -40px; right: -40px;
+      width: 130px; height: 130px;
+      background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .logo {
+      width: 36px; height: 36px;
+      background: #fff;
+      border-radius: 10px;
+      display: grid; place-items: center;
+      box-shadow: 0 2px 14px rgba(255,255,255,0.12);
+      flex-shrink: 0;
+    }
+
+    .logo svg { width: 18px; height: 18px; color: #000; }
+
+    .header-text h1 {
+      font-size: 14.5px; font-weight: 700;
+      letter-spacing: 0.01em; line-height: 1.2;
+    }
+
+    .header-text p {
+      font-size: 10.5px; color: var(--muted); margin-top: 2px;
+    }
+
+    /* ─── Body ───────────────────────────────────────────── */
+    .body {
+      padding: 14px 18px 18px;
+      display: flex; flex-direction: column; gap: 12px;
+    }
+
+    /* ─── Status badge ───────────────────────────────────── */
+    .badge {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 7px 12px;
+      font-size: 11.5px;
+    }
+
+    .dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: #444; flex-shrink: 0;
+      transition: background 0.3s;
+    }
+
+    .dot.active {
+      background: #fff;
+      box-shadow: 0 0 6px rgba(255,255,255,0.45);
+      animation: blink 2s infinite;
+    }
+
+    @keyframes blink {
+      0%,100% { opacity: 1; }
+      50%      { opacity: 0.35; }
+    }
+
+    #site-label { flex: 1; color: var(--text); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* ─── Summarize button ───────────────────────────────── */
+    #summarize-btn {
+      width: 100%; padding: 11px 16px;
+      background: #fff; color: #000;
+      border: none; border-radius: var(--radius);
+      font-family: inherit; font-size: 13px; font-weight: 700;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      box-shadow: 0 4px 18px rgba(255,255,255,0.09);
+      transition: background 0.14s, transform 0.14s, box-shadow 0.14s;
+    }
+
+    #summarize-btn:hover:not(:disabled) {
+      background: #e6e6e6;
+      transform: translateY(-1px);
+      box-shadow: 0 7px 24px rgba(255,255,255,0.15);
+    }
+
+    #summarize-btn:active:not(:disabled) { transform: translateY(0); }
+
+    #summarize-btn:disabled { opacity: 0.32; cursor: not-allowed; }
+
+    /* ─── Output box ─────────────────────────────────────── */
+    #output-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 13px;
+      min-height: 300px;
+      max-height: 400px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      width: 100%;
+      font-size: 12px; line-height: 1.7;
+      color: var(--muted);
+      display: flex; align-items: flex-start; gap: 10px;
+      transition: border-color 0.25s;
+    }
+
+    /* Custom scrollbar */
+    #output-box::-webkit-scrollbar { width: 4px; }
+    #output-box::-webkit-scrollbar-track { background: transparent; }
+    #output-box::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+
+    #output-box.has-content  { color: var(--text); border-color: rgba(255,255,255,0.25); }
+    #output-box.is-error     { color: #888; border-color: rgba(255,255,255,0.13); }
+    #output-box.is-loading   { border-color: rgba(255,255,255,0.18); }
+
+    .output-icon { font-size: 17px; flex-shrink: 0; margin-top: 2px; }
+
+    #output-text {
+      flex: 1;
+      min-width: 0;           /* prevents flex child from overflowing */
+      white-space: pre-wrap;  /* preserve line breaks from AI response */
+      word-wrap: break-word;  /* legacy browsers */
+      overflow-wrap: break-word; /* modern standard */
+      word-break: break-word; /* force break on very long words */
+    }
+
+    /* ─── Spinner ────────────────────────────────────────── */
+    .spinner {
+      width: 15px; height: 15px; flex-shrink: 0; margin-top: 3px;
+      border: 2px solid rgba(255,255,255,0.13);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ─── Copy button ─────────────────────────────────────── */
+    #copy-btn {
+      width: 100%; padding: 9px 16px;
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: var(--radius);
+      color: var(--muted);
+      font-family: inherit; font-size: 12.5px; font-weight: 600;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 7px;
+      transition: background 0.14s, border-color 0.14s, color 0.14s, transform 0.12s;
+    }
+
+    #copy-btn:hover:not(:disabled) {
+      background: rgba(255,255,255,0.07);
+      border-color: rgba(255,255,255,0.35);
+      color: var(--text);
+      transform: translateY(-1px);
+    }
+
+    #copy-btn:active:not(:disabled) { transform: translateY(0); }
+
+    #copy-btn:disabled { opacity: 0.25; cursor: not-allowed; }
+
+    #copy-btn.copied {
+      border-color: rgba(255,255,255,0.4);
+      color: #fff;
+      background: rgba(255,255,255,0.06);
+    }
+
+    /* ─── Footer ─────────────────────────────────────────── */
+    .footer {
+      padding: 0 18px 13px;
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 10px; color: var(--muted);
+    }
+
+    .footer strong { color: #fff; font-weight: 600; }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2l2.09 6.26L20 10l-5.91 1.74L12 18l-2.09-6.26L4 10l5.91-1.74L12 2z"/>
+        <path d="M19 15l1.09 3.26L24 19l-3.91 1.74L19 24l-1.09-3.26L14 19l3.91-1.74L19 15z" opacity="0.5"/>
+      </svg>
+    </div>
+    <div class="header-text">
+      <h1>Puller</h1>
+      <p>Summarize any AI chat instantly</p>
+    </div>
+  </div>
+
+  <!-- Body -->
+  <div class="body">
+
+    <!-- Status badge -->
+    <div class="badge">
+      <span class="dot" id="status-dot"></span>
+      <span id="site-label">Checking current page…</span>
+    </div>
+
+    <!-- Action button -->
+    <button id="summarize-btn" disabled>
+      <span id="btn-icon">✨</span>
+      <span id="btn-text">Summarize Current Chat</span>
+    </button>
+
+    <!-- Output -->
+    <div id="output-box">
+      <span class="output-icon" id="output-icon">💬</span>
+      <span id="output-text">Open any AI chat — then click Summarize.</span>
+    </div>
+
+    <!-- Copy button -->
+    <button id="copy-btn" disabled>
+      <span id="copy-icon">📋</span>
+      <span id="copy-text">Copy Summary</span>
+    </button>
+
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <span>v1.2.0</span>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
